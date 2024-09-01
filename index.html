@@ -1456,11 +1456,12 @@
             l = location.href.split('urls=')
             if(l.length>1){
               urls = l[1].split('&')[0].split(',')
+              console.log(urls)
               urlCt = urls.length
               urls.map(url => skyboxes = [...skyboxes, loadSkyBox(size, res, url, shape)])
             }else{
               urlCt = 1
-              url = 'sample.jpg'
+              url = 'https://srmcgann.github.io/skybox_viewer/sample.jpg'
               skyboxes = [...skyboxes, loadSkyBox(size, res, url, shape)]
             }
             skyboxSel = 0
