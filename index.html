@@ -1442,7 +1442,7 @@
             l = location.href.split('shape=')
             let change = false
             if(l.length>1){
-              tshape = l[1].split('&')[0]
+              tshape = l[1].split('&')[0].toLowerCase()
               console.log(`tshape ${tshape}`)
               switch(tshape){
                 case 'tetrahedron'  :shape = tshape; break
