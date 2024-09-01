@@ -1,5 +1,6 @@
 # Skybox Viewer
 texture type auto-detected [HDRI | skybox]
+
 ![Image](example.gif)
 ## USAGE
 
