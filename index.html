@@ -1135,7 +1135,6 @@
               switch(type){
                 case 'HDRI':
                   if(typeof skycube_hdri == 'undefined'){
-                    console.log(`shape ${shape}`)
                     switch(shape){
                       case 'tetrahedron': shapeFunc = subDividedTetrahedron; break
                       //case 'cube': shapeFunc = subDivdiedCube; break
@@ -1245,54 +1244,75 @@
             }
             ct             = 0
             let buffer = document.createElement('canvas')
+            let resource
+            if(url.toLowerCase().split('.mp4').length>1){
+              resource = document.createElement('video')
+              resource.loop = true
+              resource.muted = true
+              resource.controls = false
+              resource.autoplay = true
+              resource.defaultPlaybackRate = resource.playbackRate = .5
+              resourceType = 'vid'
+              resource.oncanplay = () => {
+                vidloadFunc()
+                resource.play()
+              }
+            }else{
+              resource = new Image()
+              resourceType = 'image'
+            }
             let obj = {
-              img : new Image(),
+              img : resource,
               loaded: false,
               buffer,
               rgbs: [],
               pwr,
               type,
-              bctx: buffer.getContext('2d'),
+              bctx: buffer.getContext('2d', {willReadFrequently: true}),
             }
-            obj.img.onload = () => {
+            vidloadFunc = obj.img.onload = () => {
               let l
               obj.loaded = true
+              texres = .125
               if(skyboxes.filter(v=>v.loaded).length == urlCt) skyboxesLoaded = true
-              obj.width  = buffer.width  = obj.img.width
-              obj.height = buffer.height = obj.img.height
+              obj.width  = buffer.width  = resourceType == 'vid' ? obj.img.videoWidth * texres  : obj.img.width * texres
+              obj.height = buffer.height = resourceType == 'vid' ? obj.img.videoHeight * texres : obj.img.height * texres
               obj.bctx.drawImage(obj.img, 0, 0, buffer.width, buffer.height)
               let data = obj.bctx.getImageData(0, 0, buffer.width, buffer.height)
               l = data.data
               
-              a = [
-                [obj.width  * .125, obj.height * (1/3/2)],
-                [obj.width  * .125 + obj.width*.25*2, obj.height * (1/3/2)],
-                [obj.width  * .125 + obj.width*.25*3, obj.height * (1/3/2)],
-                [obj.width  * .125, obj.height * (1/3/2) + obj.height * (2/3)],
-                [obj.width  * .125 + obj.width*.25*2, obj.height * (1/3/2) + obj.height * (2/3)],
-                [obj.width  * .125 + obj.width*.25*3, obj.height * (1/3/2) + obj.height * (2/3)]
-              ]
-              vals = []
-              type = 'box'
-              a.map((v, i) => {
-                X = v[0]|0
-                Y = v[1]|0
-                idx   = ((Y * buffer.width + X) | 0 ) * 4
-                red   = l[idx + 0]
-                green = l[idx + 1]
-                blue  = l[idx + 2]
-                alpha = 255
-                hsv = HSVFromRGB(red, green, blue)
-                if(i){
-                  if(Math.abs(hsv[0] - vals[0][0]) > 1 || 
-                     Math.abs(hsv[1] - vals[0][1]) > .01 ||
-                     Math.abs(hsv[2] - vals[0][2]) > .01) type = 'HDRI'
-                }
-                vals = [...vals, hsv]
-              })
-              
-              console.log(type)
-              obj.type = type
+              if(typeof obj.skyCube == 'undefined'){
+                a = [
+                  [obj.width  * .125, obj.height * (1/3/2)],
+                  [obj.width  * .125 + obj.width*.25*2, obj.height * (1/3/2)],
+                  [obj.width  * .125 + obj.width*.25*3, obj.height * (1/3/2)],
+                  [obj.width  * .125, obj.height * (1/3/2) + obj.height * (2/3)],
+                  [obj.width  * .125 + obj.width*.25*2, obj.height * (1/3/2) + obj.height * (2/3)],
+                  [obj.width  * .125 + obj.width*.25*3, obj.height * (1/3/2) + obj.height * (2/3)]
+                ]
+                vals = []
+                type = 'box'
+                a.map((v, i) => {
+                  X = v[0]|0
+                  Y = v[1]|0
+                  idx   = ((Y * buffer.width + X) | 0 ) * 4
+                  red   = l[idx + 0]
+                  green = l[idx + 1]
+                  blue  = l[idx + 2]
+                  alpha = 255
+                  hsv = HSVFromRGB(red, green, blue)
+                  if(i){
+                    if(Math.abs(hsv[0] - vals[0][0]) > 1 || 
+                       Math.abs(hsv[1] - vals[0][1]) > .01 ||
+                       Math.abs(hsv[2] - vals[0][2]) > .01) type = 'HDRI'
+                  }
+                  vals = [...vals, hsv]
+                })
+                obj.type = type
+              }else{
+                obj.rgbs = []
+                type = obj.type
+              }
               
               obj.skyCube = SkyCube(size, pwr, 1, type)
               switch(type){
@@ -1427,9 +1447,10 @@
                 break
               }
             }
+            if(resourceType == 'vid') vidloadFunc()
           }
           
-          loadSkyBoxes = (res = 7, size = 1e3) => {
+          loadSkyBoxes = (res = 6, size = 1e3) => {
             skyboxes = []
             
             l = location.href.split('res=')
@@ -1438,12 +1459,11 @@
               if(tres>0 && tres < 9) res = tres
             }
             
-            shape = 'cube'
+            shape = 'dodecahedron'
             l = location.href.split('shape=')
             let change = false
             if(l.length>1){
               tshape = l[1].split('&')[0].toLowerCase()
-              console.log(`tshape ${tshape}`)
               switch(tshape){
                 case 'tetrahedron'  :shape = tshape; break
                 case 'cube'         :shape = tshape; break
@@ -1456,12 +1476,11 @@
             l = location.href.split('urls=')
             if(l.length>1){
               urls = l[1].split('&')[0].split(',')
-              console.log(urls)
               urlCt = urls.length
               urls.map(url => skyboxes = [...skyboxes, loadSkyBox(size, res, url, shape)])
             }else{
               urlCt = 1
-              url = 'https://srmcgann.github.io/skybox_viewer/sample.jpg'
+              url = 'https://srmcgann.github.io/skybox_vids/HDRI/9.mp4'
               skyboxes = [...skyboxes, loadSkyBox(size, res, url, shape)]
             }
             skyboxSel = 0
