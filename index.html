@@ -1242,38 +1242,44 @@
               }
               return ret
             }
-            ct             = 0
+            
             let buffer = document.createElement('canvas')
             let resource
-            if(url.toLowerCase().split('.mp4').length>1){
-              if((l2=location.href.split('playbackspeed=')).length>1){
-                pbr = +l2[1].split('&')[0]
-              }else{
-                pbr = .5
-              }
-              resource = document.createElement('video')
-              resource.loop = true
-              resource.muted = true
-              resource.controls = false
-              resource.autoplay = true
-              resource.defaultPlaybackRate = resource.playbackRate = pbr
-              resourceType = 'vid'
-              resource.oncanplay = () => {
-                vidloadFunc()
-                resource.play()
-              }
-            }else{
-              resource = new Image()
-              resourceType = 'image'
-            }
             let obj = {
               img : resource,
               loaded: false,
+              resourceType,
               buffer,
               rgbs: [],
               pwr,
               type,
               bctx: buffer.getContext('2d', {willReadFrequently: true}),
+            }
+            ct             = 0
+            if(typeof obj.skyCube == 'undefined'){
+              if(url.toLowerCase().split('.mp4').length>1){
+                if((l2=location.href.split('playbackspeed=')).length>1){
+                  pbr = +l2[1].split('&')[0]
+                }else{
+                  pbr = .5
+                }
+                resource = document.createElement('video')
+                resource.loop = true
+                resource.muted = true
+                resource.controls = false
+                resource.autoplay = true
+                resource.defaultPlaybackRate = resource.playbackRate = pbr
+                resourceType = 'vid'
+                resource.oncanplay = () => {
+                  vidloadFunc()
+                  resource.play()
+                }
+              }else{
+                resource = new Image()
+                resourceType = 'image'
+              }
+            }else{
+              resourceType = obj.resourceType
             }
             vidloadFunc = obj.img.onload = () => {
               let l
