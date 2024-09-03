@@ -1246,12 +1246,17 @@
             let buffer = document.createElement('canvas')
             let resource
             if(url.toLowerCase().split('.mp4').length>1){
+              if(l2=location.href.split('playbackspeed=').length>1){
+                pbr = +l2[1].split('&')[0]
+              }else{
+                pbr = .5
+              }
               resource = document.createElement('video')
               resource.loop = true
               resource.muted = true
               resource.controls = false
               resource.autoplay = true
-              resource.defaultPlaybackRate = resource.playbackRate = .5
+              resource.defaultPlaybackRate = resource.playbackRate = pbr
               resourceType = 'vid'
               resource.oncanplay = () => {
                 vidloadFunc()
