@@ -1248,7 +1248,7 @@
             let obj = {
               img : resource,
               loaded: false,
-              resourceType,
+              resourceType: '',
               buffer,
               rgbs: [],
               pwr,
@@ -1269,14 +1269,14 @@
                 resource.controls = false
                 resource.autoplay = true
                 resource.defaultPlaybackRate = resource.playbackRate = pbr
-                resourceType = 'vid'
+                obj.resourceType = resourceType = 'vid'
                 resource.oncanplay = () => {
                   vidloadFunc()
                   resource.play()
                 }
               }else{
                 resource = new Image()
-                resourceType = 'image'
+                obj.resourceType = resourceType = 'image'
               }
             }else{
               resourceType = obj.resourceType
